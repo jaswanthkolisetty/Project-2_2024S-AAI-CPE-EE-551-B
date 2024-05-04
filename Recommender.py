@@ -45,15 +45,8 @@ class Recommender:
             print("No file selected.")
             return
 
-        # Assuming the file might have a header issue, try to detect the delimiter
         with open(filename, 'r', newline='', encoding='utf-8') as file:
-            sample = file.read(1024)
-            print(sample)
-            sniffer = csv.Sniffer()
-            dialect = sniffer.sniff(sample)
-
-        with open(filename, 'r', newline='', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter=dialect.delimiter)
+            reader = csv.DictReader(file, delimiter=',')  # Explicitly specify delimiter
             self.shows = {}
             for row in reader:
                 print(row)
@@ -62,14 +55,14 @@ class Recommender:
                     show_type=row['type'],
                     title=row['title'],
                     director=row['director'],
-                    cast=row['cast'].replace('\\', ', '),  # Assuming the cast is split by backslashes
+                    cast=row['cast'].replace('\\', ', '),
                     average_rating=row['average_rating'],
                     country=row['country'],
                     date_added=row['date_added'],
                     release_year=row['release_year'],
                     rating=row['rating'],
                     duration=row['duration'],
-                    listed_in=row['listed_in'].replace('\\', ', '),  # Assuming the genres are split by backslashes
+                    listed_in=row['listed_in'].replace('\\', ', '),
                     description=row['description']
                 )
                 self.shows[row['show_id']] = show
