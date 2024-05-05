@@ -129,10 +129,13 @@ class RecommenderGUI:
 
     def loadShows(self):
         self.recommender.loadShows()
-        movie_text = '\n'.join(self.recommender.getMovieList())
-        movie_stats = self.recommender.getMovieStats()
-        tv_show_text = '\n'.join(self.recommender.getTVList())
-        tv_show_stats = self.recommender.getTVStats()
+        try:
+            movie_text = '\n'.join(self.recommender.getMovieList())
+            movie_stats = self.recommender.getMovieStats()
+            tv_show_text = '\n'.join(self.recommender.getTVList())
+            tv_show_stats = self.recommender.getTVStats()
+        except:
+            return
         self.movie_text.config(state='normal')
         self.movie_text.delete(1.0, tk.END)
         self.movie_text.insert(tk.END, movie_text)
@@ -152,8 +155,11 @@ class RecommenderGUI:
 
     def loadBooks(self):
         self.recommender.loadBooks()
-        book_text = '\n'.join(self.recommender.getBookList())
-        book_stats = self.recommender.getBookStats()
+        try:
+            book_text = '\n'.join(self.recommender.getBookList())
+            book_stats = self.recommender.getBookStats()
+        except:
+            return
         self.book_text.config(state='normal')
         self.book_text.delete(1.0, tk.END)
         self.book_text.insert(tk.END, book_text)

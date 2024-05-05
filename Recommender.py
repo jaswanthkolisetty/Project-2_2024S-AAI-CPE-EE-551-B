@@ -14,10 +14,15 @@ class Recommender:
         self.associations = {}  # Nested dictionaries to store associations
 
     def loadBooks(self):
-        filename = filedialog.askopenfilename()
-        if not filename:
-            print("No file selected.")
-            return
+        while True:
+            filename = filedialog.askopenfilename()  # This opens the file dialog
+            if not filename:
+                if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
+                    continue
+                else:
+                    print("No file selected, and user cancelled the operation.")
+                    return
+            break
         with open(filename, 'r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file, delimiter=',')  # Changed delimiter to ','
             self.books = {}
@@ -41,10 +46,15 @@ class Recommender:
         print(self.books[31851]._title)
 
     def loadShows(self):
-        filename = filedialog.askopenfilename()
-        if not filename:
-            print("No file selected.")
-            return
+        while True:
+            filename = filedialog.askopenfilename()  # This opens the file dialog
+            if not filename:
+                if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
+                    continue
+                else:
+                    print("No file selected, and user cancelled the operation.")
+                    return
+            break
 
         with open(filename, 'r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file, delimiter=',')  # Explicitly specify delimiter
@@ -69,40 +79,17 @@ class Recommender:
                 self.shows[row['show_id']] = show
         print("Shows loaded successfully.")
 
-    # def loadAssociations(self):
-    #     filename = filedialog.askopenfilename()
-    #     if not filename:
-    #         print("No file selected.")
-    #         return
-    #     with open(filename, 'r', newline='', encoding='utf-8') as file:
-    #         reader = csv.reader(file, delimiter=',')
-    #         self.associations = {}
-    #         for row in reader:
-    #             print(row)
-    #             id1, id2 = row[0], row[1]
-    #             if id1 not in self.associations:
-    #                 self.associations[id1] = {}
-    #             if id2 not in self.associations[id1]:
-    #                 self.associations[id1][id2] = 0
-    #             self.associations[id1][id2] += 1
-    #
-    #             # Reverse association
-    #             if id2 not in self.associations:
-    #                 self.associations[id2] = {}
-    #             if id1 not in self.associations[id2]:
-    #                 self.associations[id2][id1] = 0
-    #             self.associations[id2][id1] += 1
-    #     print("Associations loaded successfully.")
 
     def loadAssociations(self):
         while True:
-            filename = filedialog.askopenfilename()
+            filename = filedialog.askopenfilename()  # This opens the file dialog
             if not filename:
-                response = messagebox.askretrycancel("File Selection", "No file selected. Try again?")
-                if not response:
-                    return  # Exit if the user decides not to retry
-            else:
-                break  # Proceed if a file is selected
+                if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
+                    continue
+                else:
+                    print("No file selected, and user cancelled the operation.")
+                    return
+            break
 
         try:
             with open(filename, 'r', newline='', encoding='utf-8') as file:
@@ -125,7 +112,8 @@ class Recommender:
     def getMovieList(self):
         # Collect movie titles and durations, ensuring the show type is 'movie'
         movies = [(show._title, show._duration) for show in self.shows.values() if show._show_type.lower() == 'movie']
-
+        if not movies:
+            return
         # Determine the maximum length of titles and durations for formatting
         if movies:
             max_title_length = max(len(title) for title, _ in movies)
@@ -176,7 +164,8 @@ class Recommender:
     def getBookList(self):
         # Collect titles and authors for books
         books = [(book._title, book._authors) for book in self.books.values()]
-
+        if not books:
+            return
         # Determine the maximum length of titles and authors for formatting
         if books:
             max_title_length = max(len(title) for title, _ in books)
@@ -203,7 +192,8 @@ class Recommender:
     def getMovieStats(self):
         # Collect data for movies only
         movies = [show for show in self.shows.values() if show._show_type.lower() == 'movie']
-
+        if not movies:
+            return
         # Rating distributions and calculation of percentages
         ratings = [movie._rating for movie in movies]
         rating_count = collections.Counter(ratings)
@@ -267,8 +257,6 @@ class Recommender:
             'Most Frequent Actor': most_frequent_actor,
             'Most Frequent Genre': most_frequent_genre
         }
-
-    import collections
 
     def getBookStats(self):
         # Ensure that books are loaded
