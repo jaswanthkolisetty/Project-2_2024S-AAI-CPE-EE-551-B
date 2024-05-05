@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from Recommender import Recommender
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import collections
 
 class RecommenderGUI:
     def __init__(self):
@@ -20,11 +23,62 @@ class RecommenderGUI:
         self.create_tv_show_tab()
         self.create_book_tab()
         self.create_search_tab()
-        self.create_search_books_tab()  # Search for books
+        self.create_search_books_tab()
         self.create_recommendation_tab()
+        self.create_ratings_tab()
 
         # Bottom buttons
         self.create_bottom_buttons()
+
+    def create_ratings_tab(self):
+        # Create tab and frames for ratings
+        self.ratings_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.ratings_tab, text="Ratings")
+        self.movies_frame = ttk.Frame(self.ratings_tab)
+        self.tv_shows_frame = ttk.Frame(self.ratings_tab)
+        self.movies_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.tv_shows_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.update_ratings_charts()
+
+    def update_ratings_charts(self):
+        # Clear previous charts
+        for widget in self.movies_frame.winfo_children():
+            widget.destroy()
+        for widget in self.tv_shows_frame.winfo_children():
+            widget.destroy()
+
+        # Process data and display pie charts for movies and TV shows
+        for show_type, frame, title in [('movie', self.movies_frame, "Movie Ratings"),
+                                        ('tv show', self.tv_shows_frame, "TV Show Ratings")]:
+            shows = [show for show in self.recommender.shows.values() if show._show_type.lower() == show_type]
+            if not shows:
+                ttk.Label(frame, text="No data available").pack()
+                continue  # Skip to the next loop if no shows of this type
+
+            ratings = [show._rating for show in shows]
+            rating_count = collections.Counter(ratings)
+            total = sum(rating_count.values())
+            labels = list(rating_count.keys())
+            sizes = [(count / total) * 100 for count in rating_count.values()]
+
+            if labels and sizes:
+                fig = Figure(figsize=(6, 5), dpi=100)  # Adjusted figure size for better fit
+                subplot = fig.add_subplot(111)
+                # Explode the largest segment
+                explode = [0.1 if i == max(sizes) else 0 for i in sizes]
+                # Create the pie chart with adjusted parameters
+                wedges, texts, autotexts = subplot.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90,
+                                                       explode=explode, shadow=True, labeldistance=1.2)
+                for text in texts:
+                    text.set_color('blue')  # Optional: change the color of the labels
+                subplot.axis('equal')  # Ensure pie is drawn as a circle
+                subplot.set_title(title)
+
+                chart = FigureCanvasTkAgg(fig, master=frame)
+                chart.draw()
+                chart.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
 
     def create_movie_tab(self):
         self.movie_tab = ttk.Frame(self.notebook)
@@ -216,6 +270,7 @@ class RecommenderGUI:
         self.tv_show_stats_text.delete(1.0, tk.END)
         self.tv_show_stats_text.insert(tk.END, tv_show_stats)
         self.tv_show_stats_text.config(state='disabled')
+        self.update_ratings_charts()
 
     def loadBooks(self):
         self.recommender.loadBooks()
@@ -278,5 +333,4 @@ def main():
     gui = RecommenderGUI()
     gui.root.mainloop()
 
-if __name__ == "__main__":
-    main()
+main()
