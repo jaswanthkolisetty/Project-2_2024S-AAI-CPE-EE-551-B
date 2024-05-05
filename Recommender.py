@@ -38,6 +38,7 @@ class Recommender:
                 )
                 self.books[int(row['bookID'])] = book  # Assuming book_id is an integer
         print("Books loaded successfully.")
+        print(self.books[31851]._title)
 
     def loadShows(self):
         filename = filedialog.askopenfilename()
@@ -68,30 +69,58 @@ class Recommender:
                 self.shows[row['show_id']] = show
         print("Shows loaded successfully.")
 
-    def loadAssociations(self):
-        filename = filedialog.askopenfilename()
-        if not filename:
-            print("No file selected.")
-            return
-        with open(filename, 'r', newline='', encoding='utf-8') as file:
-            reader = csv.reader(file, delimiter=',')
-            self.associations = {}
-            for row in reader:
-                print(row)
-                id1, id2 = row[0], row[1]
-                if id1 not in self.associations:
-                    self.associations[id1] = {}
-                if id2 not in self.associations[id1]:
-                    self.associations[id1][id2] = 0
-                self.associations[id1][id2] += 1
+    # def loadAssociations(self):
+    #     filename = filedialog.askopenfilename()
+    #     if not filename:
+    #         print("No file selected.")
+    #         return
+    #     with open(filename, 'r', newline='', encoding='utf-8') as file:
+    #         reader = csv.reader(file, delimiter=',')
+    #         self.associations = {}
+    #         for row in reader:
+    #             print(row)
+    #             id1, id2 = row[0], row[1]
+    #             if id1 not in self.associations:
+    #                 self.associations[id1] = {}
+    #             if id2 not in self.associations[id1]:
+    #                 self.associations[id1][id2] = 0
+    #             self.associations[id1][id2] += 1
+    #
+    #             # Reverse association
+    #             if id2 not in self.associations:
+    #                 self.associations[id2] = {}
+    #             if id1 not in self.associations[id2]:
+    #                 self.associations[id2][id1] = 0
+    #             self.associations[id2][id1] += 1
+    #     print("Associations loaded successfully.")
 
-                # Reverse association
-                if id2 not in self.associations:
-                    self.associations[id2] = {}
-                if id1 not in self.associations[id2]:
-                    self.associations[id2][id1] = 0
-                self.associations[id2][id1] += 1
-        print("Associations loaded successfully.")
+    def loadAssociations(self):
+        while True:
+            filename = filedialog.askopenfilename()
+            if not filename:
+                response = messagebox.askretrycancel("File Selection", "No file selected. Try again?")
+                if not response:
+                    return  # Exit if the user decides not to retry
+            else:
+                break  # Proceed if a file is selected
+
+        try:
+            with open(filename, 'r', newline='', encoding='utf-8') as file:
+                reader = csv.reader(file, delimiter=',')
+                for row in reader:
+                    if len(row) < 2:  # Ensure there are at least two IDs per row
+                        continue  # Skip rows that don't have at least two IDs
+
+                    id1, id2 = row[0].strip(), row[1].strip()  # Strip spaces which could cause key mismatch
+                    for a, b in [(id1, id2), (id2, id1)]:  # Process both (id1, id2) and (id2, id1)
+                        if a not in self.associations:
+                            self.associations[a] = {}
+                        if b not in self.associations[a]:
+                            self.associations[a][b] = 0
+                        self.associations[a][b] += 1
+            print("Associations loaded successfully.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read file: {e}")
 
     def getMovieList(self):
         # Collect movie titles and durations, ensuring the show type is 'movie'
@@ -348,83 +377,120 @@ class Recommender:
         else:
             return "No Results"
 
-    def getRecommendations(self, media_type, title):
-        root = tk.Tk()
-        root.withdraw()  # Hides the main window
+    # def getRecommendations(self, media_type, title):
+    #     root = tk.Tk()
+    #     root.withdraw()  # Hides the main window
+    #
+    #     # Handle recommendations for Movies or TV Shows
+    #     if media_type.lower() in ['movie', 'tv show']:
+    #         # Find the ID associated with the title
+    #         media_id = next((show_id for show_id, show in self.shows.items()
+    #                          if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
+    #                         None)
+    #
+    #         if not media_id:
+    #             messagebox.showwarning("Warning", f"There are no recommendations for the title '{title}'.")
+    #             return "No results"
+    #
+    #         # Find all book associations for this media ID
+    #         if media_id in self.associations:
+    #             associated_books = self.associations[media_id]
+    #             book_details = []
+    #
+    #             for book_id in associated_books:
+    #                 if book_id in self.books:
+    #                     book = self.books[book_id]
+    #                     book_details.append(
+    #                         f"Title: {book._title}, Author: {book._authors}, Publisher: {book._publisher}")
+    #
+    #             if book_details:
+    #                 return "\n".join(book_details)
+    #             else:
+    #                 return "No results"
+    #         else:
+    #             return "No results"
+    #
+    #     # Add additional branches if handling other types (like books) for recommendations
+    #     else:
+    #         messagebox.showwarning("Warning", "Please select 'Movie' or 'TV Show' as type.")
+    #         return "No results"
 
-        # Handle recommendations for Movies or TV Shows
+    # def getRecommendations(self, media_type, title):
+    #     root = tk.Tk()
+    #     root.withdraw()  # Hides the main window
+    #
+    #     results = "No results"
+    #     if media_type.lower() in ['movie', 'tv show']:
+    #         # Search for Movies or TV Shows
+    #         media_id = next((id for id, show in self.shows.items()
+    #                          if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
+    #                         None)
+    #         if not media_id:
+    #             messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
+    #         else:
+    #             # Look for associated books
+    #             associated_items = self.associations.get(media_id, {})
+    #             if associated_items:
+    #                 book_details = [
+    #                     f"Title: {self.books[book_id]._title}, Author: {self.books[book_id]._authors}, Publisher: {self.books[book_id]._publisher}"
+    #                     for book_id in associated_items if book_id in self.books]
+    #                 if book_details:
+    #                     results = "\n".join(book_details)
+    #
+    #     elif media_type.lower() == 'book':
+    #         # Search for Books
+    #         book_id = next((id for id, book in self.books.items() if book._title.lower() == title.lower()), None)
+    #         if not book_id:
+    #             messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
+    #         else:
+    #             # Look for associated movies or TV shows
+    #             associated_items = self.associations.get(book_id, {})
+    #             if associated_items:
+    #                 show_details = [
+    #                     f"Title: {self.shows[show_id]._title}, Director: {self.shows[show_id]._director}, Actors: {self.shows[show_id]._cast}, Genre: {self.shows[show_id]._listed_in}"
+    #                     for show_id in associated_items if show_id in self.shows]
+    #                 if show_details:
+    #                     results = "\n".join(show_details)
+    #
+    #     else:
+    #         messagebox.showwarning("Warning",
+    #                                "Invalid media type provided. Please select 'Movie', 'TV Show', or 'Book'.")
+    #
+    #     return results
+    def getRecommendations(self, media_type, title):
         if media_type.lower() in ['movie', 'tv show']:
-            # Find the ID associated with the title
-            media_id = next((show_id for show_id, show in self.shows.items()
-                             if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
+            media_id = next((id for id, show in self.shows.items() if
+                             show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
                             None)
 
-            if not media_id:
-                messagebox.showwarning("Warning", f"There are no recommendations for the title '{title}'.")
-                return "No results"
-
-            # Find all book associations for this media ID
-            if media_id in self.associations:
-                associated_books = self.associations[media_id]
-                book_details = []
-
-                for book_id in associated_books:
-                    if book_id in self.books:
-                        book = self.books[book_id]
-                        book_details.append(
-                            f"Title: {book._title}, Author: {book._authors}, Publisher: {book._publisher}")
-
-                if book_details:
-                    return "\n".join(book_details)
-                else:
-                    return "No results"
-            else:
-                return "No results"
-
-        # Add additional branches if handling other types (like books) for recommendations
-        else:
-            messagebox.showwarning("Warning", "Please select 'Movie' or 'TV Show' as type.")
-            return "No results"
-
-    def getRecommendations(self, media_type, title):
-        root = tk.Tk()
-        root.withdraw()  # Hides the main window
-
-        results = "No results"
-        if media_type.lower() in ['movie', 'tv show']:
-            # Search for Movies or TV Shows
-            media_id = next((id for id, show in self.shows.items()
-                             if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
-                            None)
             if not media_id:
                 messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
-            else:
-                # Look for associated books
-                associated_items = self.associations.get(media_id, {})
-                if associated_items:
-                    book_details = [
-                        f"Title: {self.books[book_id]._title}, Author: {self.books[book_id]._authors}, Publisher: {self.books[book_id]._publisher}"
-                        for book_id in associated_items if book_id in self.books]
-                    if book_details:
-                        results = "\n".join(book_details)
+                return "No results"
+
+            # Fetch associated books
+            associated_items = self.associations.get(media_id, {})
+            book_details = [
+                f"Title: {self.books[int(book_id)]._title}, Author: {self.books[int(book_id)]._authors}, Publisher: {self.books[int(book_id)]._publisher}"
+                for book_id in associated_items if int(book_id) in self.books]
+
+            return "\n".join(book_details) if book_details else "No results"
 
         elif media_type.lower() == 'book':
-            # Search for Books
             book_id = next((id for id, book in self.books.items() if book._title.lower() == title.lower()), None)
             if not book_id:
                 messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
-            else:
-                # Look for associated movies or TV shows
-                associated_items = self.associations.get(book_id, {})
-                if associated_items:
-                    show_details = [
-                        f"Title: {self.shows[show_id]._title}, Director: {self.shows[show_id]._director}, Actors: {self.shows[show_id]._cast}, Genre: {self.shows[show_id]._listed_in}"
-                        for show_id in associated_items if show_id in self.shows]
-                    if show_details:
-                        results = "\n".join(show_details)
+                return "No results"
+
+            # Fetch associated movies or TV shows
+            associated_items = self.associations.get(book_id, {})
+            show_details = [
+                f"Title: {self.shows[show_id]._title}, Director: {self.shows[show_id]._director}, Actors: {self.shows[show_id]._cast}, Genre: {self.shows[show_id]._listed_in}"
+                for show_id in associated_items if show_id in self.shows]
+
+            return "\n".join(show_details) if show_details else "No results"
 
         else:
             messagebox.showwarning("Warning",
                                    "Invalid media type provided. Please select 'Movie', 'TV Show', or 'Book'.")
+            return "No results"
 
-        return results
