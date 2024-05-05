@@ -109,22 +109,6 @@ class RecommenderGUI:
         self.search_text = scrolledtext.ScrolledText(self.search_tab, wrap=tk.WORD, height=10)
         self.search_text.pack(fill='both', expand=True)
 
-    # def create_search_books_tab(self):
-    #     self.search_books_tab = ttk.Frame(self.notebook)
-    #     self.notebook.add(self.search_books_tab, text="Search Books")
-    #     ttk.Label(self.search_books_tab, text="Title:").grid(row=0, column=0, padx=10, pady=10)
-    #     self.title_book_entry = ttk.Entry(self.search_books_tab, width=20)
-    #     self.title_book_entry.grid(row=0, column=1, padx=10, pady=10)
-    #     ttk.Label(self.search_books_tab, text="Author:").grid(row=1, column=0, padx=10, pady=10)
-    #     self.author_entry = ttk.Entry(self.search_books_tab, width=20)
-    #     self.author_entry.grid(row=1, column=1, padx=10, pady=10)
-    #     ttk.Label(self.search_books_tab, text="Publisher:").grid(row=2, column=0, padx=10, pady=10)
-    #     self.publisher_entry = ttk.Entry(self.search_books_tab, width=20)
-    #     self.publisher_entry.grid(row=2, column=1, padx=10, pady=10)
-    #     ttk.Button(self.search_books_tab, text="Search", command=self.searchBooks).grid(row=3, column=0, columnspan=2, pady=10)
-    #     self.book_search_text = scrolledtext.ScrolledText(self.search_books_tab, wrap=tk.WORD, height=15)
-    #     self.book_search_text.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-
     def create_search_books_tab(self):
         self.search_books_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.search_books_tab, text="Search Books")
@@ -162,28 +146,6 @@ class RecommenderGUI:
         # Text area for results
         self.book_search_text = scrolledtext.ScrolledText(self.search_books_tab, wrap=tk.WORD, height=15)
         self.book_search_text.pack(fill='both', expand=True, padx=10, pady=10)
-
-    # def create_recommendation_tab(self):
-    #     """Creates the tab for getting recommendations."""
-    #     self.recommendation_tab = ttk.Frame(self.notebook)
-    #     self.notebook.add(self.recommendation_tab, text="Recommendations")
-    #
-    #     # Media Type ComboBox
-    #     ttk.Label(self.recommendation_tab, text="Type:").grid(row=0, column=0, padx=10, pady=10)
-    #     self.rec_type_combobox = ttk.Combobox(self.recommendation_tab, values=["Movie", "TV Show", "Book"], width=17)
-    #     self.rec_type_combobox.grid(row=0, column=1, padx=10, pady=10)
-    #
-    #     # Title Entry
-    #     ttk.Label(self.recommendation_tab, text="Title:").grid(row=1, column=0, padx=10, pady=10)
-    #     self.rec_title_entry = ttk.Entry(self.recommendation_tab, width=20)
-    #     self.rec_title_entry.grid(row=1, column=1, padx=10, pady=10)
-    #
-    #     # Recommendation Button
-    #     ttk.Button(self.recommendation_tab, text="Get Recommendation", command=self.getRecommendations).grid(row=2, column=0, columnspan=2, pady=10)
-    #
-    #     # Text Area for Recommendations
-    #     self.recommendation_text = scrolledtext.ScrolledText(self.recommendation_tab, wrap=tk.WORD, height=15)
-    #     self.recommendation_text.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
     def create_recommendation_tab(self):
         """Creates the tab for getting recommendations."""
