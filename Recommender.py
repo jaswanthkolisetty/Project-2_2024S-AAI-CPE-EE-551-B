@@ -66,14 +66,14 @@ class Recommender:
                     show_type=row['type'],
                     title=row['title'],
                     director=row['director'],
-                    cast=row['cast'].replace('\\', ', '),
+                    cast=row['cast'].replace('\\', '\\'),
                     average_rating=row['average_rating'],
                     country=row['country'],
                     date_added=row['date_added'],
                     release_year=row['release_year'],
                     rating=row['rating'],
                     duration=row['duration'],
-                    listed_in=row['listed_in'].replace('\\', ', '),
+                    listed_in=row['listed_in'].replace('\\', '\\'),
                     description=row['description']
                 )
                 self.shows[row['show_id']] = show
@@ -285,6 +285,54 @@ class Recommender:
         }
 
 
+    # def searchTVMovies(self, media_type, title='', director='', actor='', genre=''):
+    #     root = tk.Tk()
+    #     root.withdraw()  # Hides the main window
+    #
+    #     # Validate media type
+    #     if media_type.lower() not in ['movie', 'tv show']:
+    #         messagebox.showerror("Error", "Please select 'Movie' or 'TV Show' from Type first.")
+    #         return "No Results"
+    #
+    #     # Check if all search fields are empty
+    #     if not any([title, director, actor, genre]):
+    #         messagebox.showerror("Error", "Please enter information for Title, Director, Actor, and/or Genre first.")
+    #         return "No Results"
+    #
+    #     # Filter shows based on input criteria
+    #     filtered_shows = [
+    #         show for show in self.shows.values()
+    #         if show._show_type.lower() == media_type.lower() and
+    #            (title.lower() in show._title.lower() if title else True) and
+    #            (director.lower() in show._director.lower() if director and show._director else True) and
+    #            (actor.lower() in show._cast.lower() if actor and show._cast else True) and
+    #            (genre.lower() in show._listed_in.lower() if genre and show._listed_in else True)
+    #     ]
+    #
+    #     # Determine the maximum length of each column for formatting
+    #     if filtered_shows:
+    #         print(filtered_shows)
+    #         try:
+    #             max_title_length = max(len(show._title) for show in filtered_shows)
+    #             max_director_length = max(len(show._director) for show in filtered_shows if show._director)
+    #             max_actor_length = max(len(show._cast) for show in filtered_shows if show._cast)
+    #             max_genre_length = max(len(show._listed_in) for show in filtered_shows if show._listed_in)
+    #             print(max_title_length,max_director_length,max_actor_length,max_genre_length)
+    #             # Create header
+    #             header = f"{'Title'.ljust(max_title_length)} {'Director'.ljust(max_director_length)} {'Actors'.ljust(max_actor_length)} {'Genre'.ljust(max_genre_length)}"
+    #             output = [header]
+    #         except:
+    #             print()
+    #
+    #         # Format each show into the output
+    #         for show in filtered_shows:
+    #             line = f"{show._title.ljust(max_title_length)} {show._director.ljust(max_director_length)} {show._cast.ljust(max_actor_length)} {show._listed_in.ljust(max_genre_length)}"
+    #             output.append(line)
+    #
+    #         return '\n'.join(output)
+    #     else:
+    #         return "No Results"
+
     def searchTVMovies(self, media_type, title='', director='', actor='', genre=''):
         root = tk.Tk()
         root.withdraw()  # Hides the main window
@@ -311,23 +359,30 @@ class Recommender:
 
         # Determine the maximum length of each column for formatting
         if filtered_shows:
-            max_title_length = max(len(show._title) for show in filtered_shows)
-            max_director_length = max(len(show._director) for show in filtered_shows if show._director)
-            max_actor_length = max(len(show._cast) for show in filtered_shows if show._cast)
-            max_genre_length = max(len(show._listed_in) for show in filtered_shows if show._listed_in)
+            try:
+                max_title_length = max((len(show._title) for show in filtered_shows), default=0)
+                max_director_length = max((len(show._director) for show in filtered_shows if show._director), default=0)
+                max_actor_length = max((len(show._cast) for show in filtered_shows if show._cast), default=0)
+                max_genre_length = max((len(show._listed_in) for show in filtered_shows if show._listed_in), default=0)
 
-            # Create header
-            header = f"{'Title'.ljust(max_title_length)} {'Director'.ljust(max_director_length)} {'Actors'.ljust(max_actor_length)} {'Genre'.ljust(max_genre_length)}"
-            output = [header]
+                print(max_title_length,max_director_length,max_actor_length,max_genre_length)
+                # Create header
+                header = f"{'Title'.ljust(max_title_length)} {'Director'.ljust(max_director_length)} {'Actors'.ljust(max_actor_length)} {'Genre'.ljust(max_genre_length)}"
+                output = [header]
 
-            # Format each show into the output
-            for show in filtered_shows:
-                line = f"{show._title.ljust(max_title_length)} {show._director.ljust(max_director_length)} {show._cast.ljust(max_actor_length)} {show._listed_in.ljust(max_genre_length)}"
-                output.append(line)
+                # Format each show into the output
+                for show in filtered_shows:
+                    line = f"{(show._title or '').ljust(max_title_length) if max_title_length > 0 else ' '*5} {(show._director or '').ljust(max_director_length) if max_director_length > 0 else ' '*8} {(show._cast or '').ljust(max_actor_length) if max_actor_length > 0 else ' '*5} {(show._listed_in or '').ljust(max_genre_length) if max_genre_length > 0 else ' '*5}"
+                    output.append(line)
 
-            return '\n'.join(output)
+                return '\n'.join(output)
+            except ValueError as e:
+                print(e)
+                return "No Results"
         else:
             return "No Results"
+
+
 
     def searchBooks(self, title='', author='', publisher=''):
         root = tk.Tk()
@@ -365,86 +420,6 @@ class Recommender:
         else:
             return "No Results"
 
-    # def getRecommendations(self, media_type, title):
-    #     root = tk.Tk()
-    #     root.withdraw()  # Hides the main window
-    #
-    #     # Handle recommendations for Movies or TV Shows
-    #     if media_type.lower() in ['movie', 'tv show']:
-    #         # Find the ID associated with the title
-    #         media_id = next((show_id for show_id, show in self.shows.items()
-    #                          if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
-    #                         None)
-    #
-    #         if not media_id:
-    #             messagebox.showwarning("Warning", f"There are no recommendations for the title '{title}'.")
-    #             return "No results"
-    #
-    #         # Find all book associations for this media ID
-    #         if media_id in self.associations:
-    #             associated_books = self.associations[media_id]
-    #             book_details = []
-    #
-    #             for book_id in associated_books:
-    #                 if book_id in self.books:
-    #                     book = self.books[book_id]
-    #                     book_details.append(
-    #                         f"Title: {book._title}, Author: {book._authors}, Publisher: {book._publisher}")
-    #
-    #             if book_details:
-    #                 return "\n".join(book_details)
-    #             else:
-    #                 return "No results"
-    #         else:
-    #             return "No results"
-    #
-    #     # Add additional branches if handling other types (like books) for recommendations
-    #     else:
-    #         messagebox.showwarning("Warning", "Please select 'Movie' or 'TV Show' as type.")
-    #         return "No results"
-
-    # def getRecommendations(self, media_type, title):
-    #     root = tk.Tk()
-    #     root.withdraw()  # Hides the main window
-    #
-    #     results = "No results"
-    #     if media_type.lower() in ['movie', 'tv show']:
-    #         # Search for Movies or TV Shows
-    #         media_id = next((id for id, show in self.shows.items()
-    #                          if show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
-    #                         None)
-    #         if not media_id:
-    #             messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
-    #         else:
-    #             # Look for associated books
-    #             associated_items = self.associations.get(media_id, {})
-    #             if associated_items:
-    #                 book_details = [
-    #                     f"Title: {self.books[book_id]._title}, Author: {self.books[book_id]._authors}, Publisher: {self.books[book_id]._publisher}"
-    #                     for book_id in associated_items if book_id in self.books]
-    #                 if book_details:
-    #                     results = "\n".join(book_details)
-    #
-    #     elif media_type.lower() == 'book':
-    #         # Search for Books
-    #         book_id = next((id for id, book in self.books.items() if book._title.lower() == title.lower()), None)
-    #         if not book_id:
-    #             messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
-    #         else:
-    #             # Look for associated movies or TV shows
-    #             associated_items = self.associations.get(book_id, {})
-    #             if associated_items:
-    #                 show_details = [
-    #                     f"Title: {self.shows[show_id]._title}, Director: {self.shows[show_id]._director}, Actors: {self.shows[show_id]._cast}, Genre: {self.shows[show_id]._listed_in}"
-    #                     for show_id in associated_items if show_id in self.shows]
-    #                 if show_details:
-    #                     results = "\n".join(show_details)
-    #
-    #     else:
-    #         messagebox.showwarning("Warning",
-    #                                "Invalid media type provided. Please select 'Movie', 'TV Show', or 'Book'.")
-    #
-    #     return results
     def getRecommendations(self, media_type, title):
         if media_type.lower() in ['movie', 'tv show']:
             media_id = next((id for id, show in self.shows.items() if
