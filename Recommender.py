@@ -1,20 +1,26 @@
 import csv
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 from Book import Book
 from Show import Show
 import collections
-from tkinter import messagebox
 
 class Recommender:
     def __init__(self):
+        """
+        Initializing Recommender class.
+        """
         self.books = {}  # Dictionary to store Book objects
         self.shows = {}  # Dictionary to store Show objects
         self.associations = {}  # Nested dictionaries to store associations
 
     def loadBooks(self):
+        """
+        Loading book data from a CSV file.
+        """
         while True:
-            filename = filedialog.askopenfilename()  # This opens the file dialog
+            filename = filedialog.askopenfilename()  # Opening the file dialog to select a file
             if not filename:
                 if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
                     continue
@@ -22,21 +28,22 @@ class Recommender:
                     print("No file selected, and user cancelled the operation.")
                     return
             break
+
         with open(filename, 'r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file, delimiter=',')  # Changed delimiter to ','
             self.books = {}
             for row in reader:
-                # Convert data types if necessary
+                # Converting data types if necessary and create Book objects
                 book = Book(
                     book_id=int(row['bookID']),  # Assuming book_id is an integer
                     title=row['title'],
                     authors=row['authors'],
-                    average_rating=float(row['average_rating']),  # Convert to float
+                    average_rating=float(row['average_rating']),  # Converting to float
                     isbn=row['isbn'],
                     isbn13=row['isbn13'],
                     language_code=row['language_code'],
-                    num_pages=int(row['num_pages']),  # Convert to integer
-                    ratings_count=int(row['ratings_count']),  # Convert to integer
+                    num_pages=int(row['num_pages']),  # Converting to integer
+                    ratings_count=int(row['ratings_count']),  # Converting to integer
                     publication_date=row['publication_date'],
                     publisher=row['publisher']
                 )
@@ -45,8 +52,11 @@ class Recommender:
         print(self.books[31851]._title)
 
     def loadShows(self):
+        """
+        Loads show data from a CSV file.
+        """
         while True:
-            filename = filedialog.askopenfilename()  # This opens the file dialog
+            filename = filedialog.askopenfilename()  # Opening the file dialog to select a file
             if not filename:
                 if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
                     continue
@@ -59,7 +69,6 @@ class Recommender:
             reader = csv.DictReader(file, delimiter=',')  # Explicitly specify delimiter
             self.shows = {}
             for row in reader:
-                print(row)
                 show = Show(
                     show_id=row['show_id'],
                     show_type=row['type'],
@@ -78,10 +87,12 @@ class Recommender:
                 self.shows[row['show_id']] = show
         print("Shows loaded successfully.")
 
-
     def loadAssociations(self):
+        """
+        Loads associations data from a CSV file.
+        """
         while True:
-            filename = filedialog.askopenfilename()  # This opens the file dialog
+            filename = filedialog.askopenfilename()  # Opening the file dialog to select a file
             if not filename:
                 if messagebox.askretrycancel("Retry", "No file selected. Try again?"):
                     continue
@@ -94,10 +105,10 @@ class Recommender:
             with open(filename, 'r', newline='', encoding='utf-8') as file:
                 reader = csv.reader(file, delimiter=',')
                 for row in reader:
-                    if len(row) < 2:  # Ensure there are at least two IDs per row
-                        continue  # Skip rows that don't have at least two IDs
+                    if len(row) < 2:  # Ensuring there are at least two IDs per row
+                        continue  # Skiping rows that don't have at least two IDs
 
-                    id1, id2 = row[0].strip(), row[1].strip()  # Strip spaces which could cause key mismatch
+                    id1, id2 = row[0].strip(), row[1].strip()  # Striping spaces which could cause key mismatch
                     for a, b in [(id1, id2), (id2, id1)]:  # Process both (id1, id2) and (id2, id1)
                         if a not in self.associations:
                             self.associations[a] = {}
@@ -109,25 +120,28 @@ class Recommender:
             messagebox.showerror("Error", f"Failed to read file: {e}")
 
     def getMovieList(self):
-        # Collect movie titles and durations, ensuring the show type is 'movie'
+        """
+        Gets a list of movies with their titles and durations.
+
+        Returns:
+            list: List of formatted strings containing movie titles and durations.
+                  Each string represents one movie entry.
+        """
+        # Collecting movie titles and durations, ensuring the show type is 'movie'
         movies = [(show._title, show._duration) for show in self.shows.values() if show._show_type.lower() == 'movie']
         if not movies:
             return
-        # Determine the maximum length of titles and durations for formatting
-        if movies:
-            max_title_length = max(len(title) for title, _ in movies)
-            max_duration_length = max(len(duration) for _, duration in movies)
-        else:
-            max_title_length = max_duration_length = 0
+        # Determining the maximum length of titles and durations for formatting
+        max_title_length = max(len(title) for title, _ in movies)
+        max_duration_length = max(len(duration) for _, duration in movies)
 
-        # Prepare output
         output_lines = []
 
-        # Create a formatted header
+        # Creating a formatted header
         header = f"{'Title'.ljust(max_title_length + 2)} {'Runtime'}"
         output_lines.append(header)
 
-        # Format each movie title and duration into the output
+        # Formating each movie title and duration into the output
         for title, duration in movies:
             formatted_line = f"{title.ljust(max_title_length + 2)} {duration}"
             output_lines.append(formatted_line)
@@ -135,25 +149,28 @@ class Recommender:
         return output_lines
 
     def getTVList(self):
-        # Collect titles and durations (as seasons) for TV shows
+        """
+        Gets a list of TV shows with their titles and seasons.
+
+        Returns:
+            list: List of formatted strings containing TV show titles and seasons.
+                  Each string represents one TV show entry.
+        """
+        # Collecting titles and durations (as seasons) for TV shows
         tv_shows = [(show._title, show._duration) for show in self.shows.values() if
                     show._show_type.lower() == 'tv show']
 
-        # Determine the maximum length of titles and durations (seasons) for formatting
-        if tv_shows:
-            max_title_length = max(len(title) for title, _ in tv_shows)
-            max_seasons_length = max(len(season) for _, season in tv_shows)
-        else:
-            max_title_length = max_seasons_length = 0
+        # Determining the maximum length of titles and durations (seasons) for formatting
+        max_title_length = max(len(title) for title, _ in tv_shows)
+        max_seasons_length = max(len(season) for _, season in tv_shows)
 
-        # Prepare output
         output_lines = []
 
-        # Create a formatted header
+        # Creating a formatted header
         header = f"{'Title'.ljust(max_title_length + 2)} {'Seasons'}"
         output_lines.append(header)
 
-        # Format each TV show's title and duration (season) into the output
+        # Formating each TV show's title and duration (season) into the output
         for title, seasons in tv_shows:
             formatted_line = f"{title.ljust(max_title_length + 2)} {seasons}"
             output_lines.append(formatted_line)
@@ -161,34 +178,43 @@ class Recommender:
         return output_lines
 
     def getBookList(self):
-        # Collect titles and authors for books
+        """
+        Creates a list of books with their titles and authors.
+
+        Returns:
+            list: List of formatted strings containing book titles and authors.
+                  Each string represents one book entry.
+        """
+        # Collecting titles and authors for books
         books = [(book._title, book._authors) for book in self.books.values()]
         if not books:
             return
-        # Determine the maximum length of titles and authors for formatting
-        if books:
-            max_title_length = max(len(title) for title, _ in books)
-            max_authors_length = max(len(authors) for _, authors in books)
-        else:
-            max_title_length = max_authors_length = 0
+        # Determining the maximum length of titles and authors for formatting
+        max_title_length = max(len(title) for title, _ in books)
+        max_authors_length = max(len(authors) for _, authors in books)
 
-        # Prepare output
         output_lines = []
 
-        # Create a formatted header
+        # Creating a formatted header
         header = f"{'Title'.ljust(max_title_length + 2)} {'Author(s)'}"
         output_lines.append(header)
 
-        # Format each book's title and authors into the output
+        # Formating each book's title and authors into the output
         for title, authors in books:
             formatted_line = f"{title.ljust(max_title_length + 2)} {authors}"
             output_lines.append(formatted_line)
 
         return output_lines
 
-
     def getMovieStats(self):
-        # Collect data for movies only
+        """
+        Generates statistics for movies, including rating distributions, average duration, most prolific director,
+        most prolific actor, and most frequent genre.
+
+        Returns:
+            str: Formatted string containing movie statistics.
+        """
+        # Collecting data for movies only
         movies = [show for show in self.shows.values() if show._show_type.lower() == 'movie']
         if not movies:
             return "No movies found."
@@ -199,27 +225,27 @@ class Recommender:
         total_ratings = sum(rating_count.values())
         rating_percentages = {rating: f"{(count / total_ratings * 100):.2f}%" for rating, count in rating_count.items()}
 
-        # Format ratings percentages
+        # Formating ratings percentages
         formatted_ratings = "\n".join(
             [f"{rating if rating else 'None'} {percent}" for rating, percent in rating_percentages.items()])
 
-        # Calculate average movie duration
+        # Calculating average movie duration
         durations = [int(movie._duration.replace(' min', '')) for movie in movies if 'min' in movie._duration]
         average_duration = sum(durations) / len(durations) if durations else 0
 
-        # Find the most frequent director
+        # Finding the most frequent director
         directors = [movie._director for movie in movies if movie._director]
         most_frequent_director = collections.Counter(directors).most_common(1)[0][0] if directors else 'None'
 
-        # Find the most frequent actor
+        # Finding the most frequent actor
         actors = [actor.strip() for movie in movies for actor in movie._cast.split('\\') if movie._cast]
         most_frequent_actor = collections.Counter(actors).most_common(1)[0][0] if actors else 'None'
 
-        # Find the most frequent genre
+        # Finding the most frequent genre
         genres = [genre.strip() for movie in movies for genre in movie._listed_in.split('\\') if movie._listed_in]
         most_frequent_genre = collections.Counter(genres).most_common(1)[0][0] if genres else 'None'
 
-        # Compile all stats into a formatted string
+        # Compiling all stats into a formatted string
         stats = (
                 "Ratings:\n" + formatted_ratings + "\n\n" +
                 f"Average Movie Duration: {average_duration:.2f} minutes\n\n" +
@@ -230,9 +256,15 @@ class Recommender:
 
         return stats
 
-
     def getTVStats(self):
-        # Filter to get only TV shows
+        """
+        Generates statistics for TV shows, including rating distributions, average number of seasons,
+        most prolific actor, and most frequent genre.
+
+        Returns:
+            str: Formatted string containing TV show statistics.
+        """
+        # Filtering to get only TV shows
         tv_shows = [show for show in self.shows.values() if show._show_type.lower() == 'tv show']
 
         # Rating distributions and calculation of percentages
@@ -241,11 +273,11 @@ class Recommender:
         total_ratings = sum(rating_count.values())
         rating_percentages = {rating: f"{(count / total_ratings * 100):.2f}%" for rating, count in rating_count.items()}
 
-        # Format ratings percentages
+        # Formating ratings percentages
         formatted_ratings = "Ratings:\n" + "\n".join(
             [f"{rating if rating else 'None'} {percent}" for rating, percent in rating_percentages.items()])
 
-        # Calculate average number of seasons (assuming the duration field holds season info and is formatted as "N Seasons")
+        # Calculating average number of seasons (assuming the duration field holds season info and is formatted as "N Seasons")
         seasons = [int(season.split()[0]) for show in tv_shows for season in show._duration.split() if
                    season.split()[0].isdigit()]
         average_seasons = sum(seasons) / len(seasons) if seasons else 0
@@ -261,16 +293,22 @@ class Recommender:
         most_frequent_genre = collections.Counter(genres).most_common(1)[0][0] if genres else 'None'
         most_frequent_genre_formatted = f"Most Frequent Genre: {most_frequent_genre}"
 
-        # Combine all stats into a single formatted string
+        # Combining all stats into a single formatted string
         stats_summary = f"{formatted_ratings}\n\n{average_seasons_formatted}\n\n{most_frequent_actor_formatted}\n\n{most_frequent_genre_formatted}"
         return stats_summary
 
     def getBookStats(self):
+        """
+        Generates statistics for books, including average page count, most prolific author, and most prolific publisher.
+
+        Returns:
+            str: Formatted string containing book statistics.
+        """
         # Ensure that books are loaded
         if not self.books:
             return "No books are loaded in the system."
 
-        # Calculate average page count
+        # Calculating average page count
         page_counts = [int(book._num_pages) for book in self.books.values()]
         average_page_count = sum(page_counts) / len(page_counts) if page_counts else 0
         average_page_count_formatted = f"Average Page Count: {average_page_count:.2f} pages"
@@ -291,20 +329,33 @@ class Recommender:
         return stats_summary
 
     def searchTVMovies(self, media_type, title='', director='', actor='', genre=''):
+        """
+        Searching for TV shows or movies based on specified criteria.
+
+        Args:
+            media_type (str): The type of media to search for ('movie' or 'tv show').
+            title (str): The title to search for.
+            director (str): The director to search for.
+            actor (str): The actor to search for.
+            genre (str): The genre to search for.
+
+        Returns:
+            str: Formatted string containing the search results.
+        """
         root = tk.Tk()
         root.withdraw()  # Hides the main window
 
-        # Validate media type
+        # Validating media type
         if media_type.lower() not in ['movie', 'tv show']:
             messagebox.showerror("Error", "Please select 'Movie' or 'TV Show' from Type first.")
             return "No Results"
 
-        # Check if all search fields are empty
+        # Checking if all search fields are empty
         if not any([title, director, actor, genre]):
             messagebox.showerror("Error", "Please enter information for Title, Director, Actor, and/or Genre first.")
             return "No Results"
 
-        # Filter shows based on input criteria
+        # Filtering shows based on input criteria
         filtered_shows = [
             show for show in self.shows.values()
             if show._show_type.lower() == media_type.lower() and
@@ -314,7 +365,7 @@ class Recommender:
                (genre.lower() in show._listed_in.lower() if genre and show._listed_in else True)
         ]
 
-        # Determine the maximum length of each column for formatting
+        # Determining the maximum length of each column for formatting
         if filtered_shows:
             try:
                 max_title_length = max((len(show._title) for show in filtered_shows), default=0)
@@ -322,14 +373,13 @@ class Recommender:
                 max_actor_length = max((len(show._cast) for show in filtered_shows if show._cast), default=0)
                 max_genre_length = max((len(show._listed_in) for show in filtered_shows if show._listed_in), default=0)
 
-                print(max_title_length,max_director_length,max_actor_length,max_genre_length)
-                # Create header
+                # Creating header
                 header = f"{'Title'.ljust(max_title_length)} {'Director'.ljust(max_director_length)} {'Actor'.ljust(max_actor_length)} {'Genre'.ljust(max_genre_length)}"
                 output = [header]
 
-                # Format each show into the output
+                # Formating each show into the output
                 for show in filtered_shows:
-                    line = f"{(show._title or '').ljust(max_title_length) if max_title_length > 0 else ' '*5} {(show._director or '').ljust(max_director_length) if max_director_length > 0 else ' '*8} {(show._cast or '').ljust(max_actor_length) if max_actor_length > 0 else ' '*5} {(show._listed_in or '').ljust(max_genre_length) if max_genre_length > 0 else ' '*5}"
+                    line = f"{(show._title or '').ljust(max_title_length) if max_title_length > 0 else ' ' * 5} {(show._director or '').ljust(max_director_length) if max_director_length > 0 else ' ' * 8} {(show._cast or '').ljust(max_actor_length) if max_actor_length > 0 else ' ' * 5} {(show._listed_in or '').ljust(max_genre_length) if max_genre_length > 0 else ' ' * 5}"
                     output.append(line)
 
                 return '\n'.join(output)
@@ -339,18 +389,27 @@ class Recommender:
         else:
             return "No Results"
 
-
-
     def searchBooks(self, title='', author='', publisher=''):
+        """
+        Searching for books based on specified criteria.
+
+        Args:
+            title (str): The title to search for.
+            author (str): The author to search for.
+            publisher (str): The publisher to search for.
+
+        Returns:
+            str: Formatted string containing the search results.
+        """
         root = tk.Tk()
         root.withdraw()  # Hides the main window
 
-        # Check if all search fields are empty
+        # Checking if all search fields are empty
         if not any([title, author, publisher]):
             messagebox.showerror("Error", "Please enter information for Title, Author, and/or Publisher first.")
             return "No Results"
 
-        # Filter books based on input criteria
+        # Filtering books based on input criteria
         filtered_books = [
             book for book in self.books.values()
             if (title.lower() in book._title.lower() if title else True) and
@@ -358,17 +417,17 @@ class Recommender:
                (publisher.lower() in book._publisher.lower() if publisher else True)
         ]
 
-        # Determine the maximum length of each column for formatting
+        # Determining the maximum length of each column for formatting
         if filtered_books:
             max_title_length = max(len(book._title) for book in filtered_books)
             max_authors_length = max(len(book._authors) for book in filtered_books)
             max_publisher_length = max(len(book._publisher) for book in filtered_books)
 
-            # Create header
+            # Creating header
             header = f"{'Title'.ljust(max_title_length)} {'Author'.ljust(max_authors_length)} {'Publisher'.ljust(max_publisher_length)}"
             output = [header]
 
-            # Format each book into the output
+            # Formating each book into the output
             for book in filtered_books:
                 line = f"{book._title.ljust(max_title_length)} {book._authors.ljust(max_authors_length)} {book._publisher.ljust(max_publisher_length)}"
                 output.append(line)
@@ -378,6 +437,16 @@ class Recommender:
             return "No Results"
 
     def getRecommendations(self, media_type, title):
+        """
+        Recommendations based on the specified media type and title.
+
+        Args:
+            media_type (str): The type of media to search for recommendations ('movie', 'tv show', or 'book').
+            title (str): The title of the media item for which recommendations are sought.
+
+        Returns:
+            str: Formatted string containing recommendations.
+        """
         if media_type.lower() in ['movie', 'tv show']:
             media_id = next((id for id, show in self.shows.items() if
                              show._title.lower() == title.lower() and show._show_type.lower() == media_type.lower()),
@@ -387,7 +456,7 @@ class Recommender:
                 messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
                 return "No results"
 
-            # Fetch associated books
+            # Fetching associated books
             associated_items = self.associations.get(media_id, {})
             if not associated_items:
                 return "No associated books found."
@@ -414,7 +483,7 @@ class Recommender:
                 messagebox.showwarning("Warning", f"No recommendations found for the title '{title}'.")
                 return "No results"
 
-            # Fetch associated movies or TV shows
+            # Fetching associated movies or TV shows
             associated_items = self.associations.get(book_id, {})
             if not associated_items:
                 return "No associated movies or TV shows found."
