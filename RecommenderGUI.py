@@ -1,10 +1,18 @@
+# Team Member Names:
+# 1. Karthik Samudrala
+# 2. Baby Sahithi Samudrala
+# 3. Jaswanth Kolisetty
+# Developed on Date: May 5th, 2024
+# Our Github Repository Link: https://github.com/jaswanthkolisetty/Project-2_2024S-AAI-CPE-EE-551-B.git
+# Description: Creates a graphical user interface for managing and displaying media information such as movies, TV shows, and books.
+#     This GUI uses tkinter for the interface and matplotlib for rendering pie charts.
+
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from Recommender import Recommender
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import collections
-
 
 class RecommenderGUI:
     """
@@ -22,6 +30,7 @@ class RecommenderGUI:
         self.root = tk.Tk()
         self.root.title("Media Recommender")  # Setting Title of the main window
         self.root.geometry("1200x800")  # Setting Size of the main window
+        self.root.state('zoomed')
 
         # Creating a Notebook widget to manage the tabs
         self.notebook = ttk.Notebook(self.root)
@@ -266,9 +275,9 @@ class RecommenderGUI:
         # Creating buttons for different functionalities and packing them to the left side of the window
         ttk.Button(self.root, text="Load Shows", command=self.loadShows).pack(side=tk.LEFT, **button_padding)
         ttk.Button(self.root, text="Load Books", command=self.loadBooks).pack(side=tk.LEFT, **button_padding)
-        ttk.Button(self.root, text="Load Associations", command=self.loadAssociations).pack(side=tk.LEFT,
+        ttk.Button(self.root, text="Load Recommendations", command=self.loadAssociations).pack(side=tk.LEFT,
                                                                                             **button_padding)
-        ttk.Button(self.root, text="Credits", command=self.creditInfoBox).pack(side=tk.LEFT, **button_padding)
+        ttk.Button(self.root, text="Information", command=self.creditInfoBox).pack(side=tk.LEFT, **button_padding)
         ttk.Button(self.root, text="Quit", command=self.root.quit).pack(side=tk.LEFT, **button_padding)
 
     def loadShows(self):
@@ -336,7 +345,7 @@ class RecommenderGUI:
         """
         Display's credits information for the application.
         """
-        messagebox.showinfo("Credits", " 1. Karthik Samudrala\n 2. Baby Sahithi Samudrala\n 3. Jaswanth Kolisetty\n\n Developed on Date: May 5th, 2024")
+        messagebox.showinfo("credit", " 1. Karthik Samudrala\n 2. Baby Sahithi Samudrala\n 3. Jaswanth Kolisetty\n\n Developed on Date: May 5th, 2024")
 
     def searchShows(self):
         """

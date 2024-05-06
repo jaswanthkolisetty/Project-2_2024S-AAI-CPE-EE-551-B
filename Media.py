@@ -1,3 +1,10 @@
+# Team Member Names:
+# 1. Karthik Samudrala
+# 2. Baby Sahithi Samudrala
+# 3. Jaswanth Kolisetty
+# Developed on Date: May 5th, 2024
+# Our Github Repository Link: https://github.com/jaswanthkolisetty/Project-2_2024S-AAI-CPE-EE-551-B.git
+
 class Media:
     """
     Represents a general media object with methods to manage its properties.
