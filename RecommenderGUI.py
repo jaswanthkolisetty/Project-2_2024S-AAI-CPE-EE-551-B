@@ -5,20 +5,29 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import collections
 
+
 class RecommenderGUI:
+    """
+    A class that creates a graphical user interface for managing and displaying media information such as movies, TV shows, and books.
+    This GUI uses tkinter for the interface and matplotlib for rendering pie charts.
+    """
+
     def __init__(self):
-        self.recommender = Recommender()
+        """
+        Initializes the RecommenderGUI class by setting up the main window, adding tabs for different media types, and adding navigation buttons.
+        """
+        self.recommender = Recommender()  # Instance of the Recommender class to manage the backend data.
 
-        # Create the main window
+        # Setup the main application window
         self.root = tk.Tk()
-        self.root.title("Media Recommender")
-        self.root.geometry("1200x800")
+        self.root.title("Media Recommender")  # Setting Title of the main window
+        self.root.geometry("1200x800")  # Setting Size of the main window
 
-        # Create a Notebook
+        # Creating a Notebook widget to manage the tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(expand=True, fill='both')
+        self.notebook.pack(expand=True, fill='both')  # Packing to make the notebook expandable and fill the window
 
-        # Add tabs
+        # This will calls to create various tabs
         self.create_movie_tab()
         self.create_tv_show_tab()
         self.create_book_tab()
@@ -27,103 +36,122 @@ class RecommenderGUI:
         self.create_recommendation_tab()
         self.create_ratings_tab()
 
-        # Bottom buttons
+        # Creating navigation buttons at the bottom of the GUI
         self.create_bottom_buttons()
 
     def create_ratings_tab(self):
-        # Create tab and frames for ratings
-        self.ratings_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.ratings_tab, text="Ratings")
-        self.movies_frame = ttk.Frame(self.ratings_tab)
-        self.tv_shows_frame = ttk.Frame(self.ratings_tab)
-        self.movies_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.tv_shows_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        """
+        Creating a tab within the main window for displaying rating statistics in pie chart format.
+        This tab will have separate frames for movies and TV shows.
+        """
+        self.ratings_tab = ttk.Frame(self.notebook)  # Main frame for the ratings tab
+        self.notebook.add(self.ratings_tab, text="Ratings")  # Add the ratings tab to the notebook
+        self.movies_frame = ttk.Frame(self.ratings_tab)  # Frame for movie ratings
+        self.tv_shows_frame = ttk.Frame(self.ratings_tab)  # Frame for TV show ratings
+        self.movies_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)  # Position and fill settings for movie frame
+        self.tv_shows_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)  # Position and fill settings for TV show frame
 
-        self.update_ratings_charts()
+        self.update_ratings_charts()  # Call the method to populate the charts initially
 
     def update_ratings_charts(self):
-        # Clear previous charts
+        """
+        Visualizing the pie charts for movie and TV show ratings based on current data.
+        This method clears existing charts and repopulates them with updated data.
+        """
+        # Clearing the existing widgets from the frames to ensure charts are not duplicated
         for widget in self.movies_frame.winfo_children():
             widget.destroy()
         for widget in self.tv_shows_frame.winfo_children():
             widget.destroy()
 
-        # Process data and display pie charts for movies and TV shows
+        # Creating and displaying pie charts for each show type
         for show_type, frame, title in [('movie', self.movies_frame, "Movie Ratings"),
                                         ('tv show', self.tv_shows_frame, "TV Show Ratings")]:
             shows = [show for show in self.recommender.shows.values() if show._show_type.lower() == show_type]
-            if not shows:
-                ttk.Label(frame, text="No data available").pack()
-                continue  # Skip to the next loop if no shows of this type
+            if not shows:  # Checking if there are no shows of this type to display
+                ttk.Label(frame, text="No data available").pack()  # Display a placeholder label
+                continue  # Skiping to the next show type
 
-            ratings = [show._rating for show in shows]
-            rating_count = collections.Counter(ratings)
-            total = sum(rating_count.values())
-            labels = list(rating_count.keys())
-            sizes = [(count / total) * 100 for count in rating_count.values()]
+            ratings = [show._rating for show in shows]  # Listing of ratings from shows
+            rating_count = collections.Counter(ratings)  # Counting of each rating
+            total = sum(rating_count.values())  # Total ratings for calculating percentages
+            labels = list(rating_count.keys())  # Labels for the pie chart
+            sizes = [(count / total) * 100 for count in rating_count.values()]  # Percentages for the pie chart
 
+            # Checking if there is data to plot
             if labels and sizes:
-                fig = Figure(figsize=(6, 5), dpi=100)  # Adjusted figure size for better fit
-                subplot = fig.add_subplot(111)
-                # Explode the largest segment
-                explode = [0.1 if i == max(sizes) else 0 for i in sizes]
-                # Create the pie chart with adjusted parameters
+                fig = Figure(figsize=(6, 5), dpi=100)  # Creating a figure for the pie chart
+                subplot = fig.add_subplot(111)  # Adding a subplot to the figure
+                explode = [0.1 if i == max(sizes) else 0 for i in sizes]  # Exploding the largest segment for emphasis
+                # Plot the pie chart
                 wedges, texts, autotexts = subplot.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90,
                                                        explode=explode, shadow=True, labeldistance=1.2)
                 for text in texts:
-                    text.set_color('blue')  # Optional: change the color of the labels
-                subplot.axis('equal')  # Ensure pie is drawn as a circle
-                subplot.set_title(title)
+                    text.set_color('blue')  # Seting the color of labels if needed
+                subplot.axis('equal')  # Ensuring the pie chart is a circle
+                subplot.set_title(title)  # Setting the title for the pie chart
 
-                chart = FigureCanvasTkAgg(fig, master=frame)
-                chart.draw()
-                chart.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
+                chart = FigureCanvasTkAgg(fig, master=frame)  # Creating a canvas for the figure in the Tkinter frame
+                chart.draw()  # Draw the chart
+                chart.get_tk_widget().pack(fill=tk.BOTH, expand=True)  # Packing the widget to make it visible
 
     def create_movie_tab(self):
-        self.movie_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.movie_tab, text="Movies")
+        """
+        Creates a tab specifically for movie data and statistics.
+        """
+        self.movie_tab = ttk.Frame(self.notebook)  # Creating a frame for the movies tab
+        self.notebook.add(self.movie_tab, text="Movies")  # Adding the frame to the notebook with a label
         self.movie_text = scrolledtext.ScrolledText(self.movie_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.movie_text.pack(fill=tk.BOTH, expand=True)
+        self.movie_text.pack(fill=tk.BOTH, expand=True)  # Packing the text area to fill the frame and expand with it
         self.movie_stats_text = scrolledtext.ScrolledText(self.movie_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.movie_stats_text.pack(fill=tk.BOTH, expand=True)
-        self.movie_text.insert(tk.END, "No movie data loaded yet.")
-        self.movie_stats_text.insert(tk.END, "No movie statistics available yet.")
+        self.movie_stats_text.pack(fill=tk.BOTH, expand=True)  # Another text area for displaying movie statistics
+        self.movie_text.insert(tk.END, "No movie data loaded yet.")  # Placeholder text
+        self.movie_stats_text.insert(tk.END, "No movie statistics available yet.")  # Placeholder text
 
     def create_tv_show_tab(self):
-        self.tv_show_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.tv_show_tab, text="TV Shows")
+        """
+        Creates a tab specifically for TV show data and statistics.
+        """
+        self.tv_show_tab = ttk.Frame(self.notebook)  # Frame for TV shows
+        self.notebook.add(self.tv_show_tab, text="TV Shows")  # Adding the frame to the notebook
         self.tv_show_text = scrolledtext.ScrolledText(self.tv_show_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.tv_show_text.pack(fill=tk.BOTH, expand=True)
+        self.tv_show_text.pack(fill=tk.BOTH, expand=True)  # Text area for TV show data
         self.tv_show_stats_text = scrolledtext.ScrolledText(self.tv_show_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.tv_show_stats_text.pack(fill=tk.BOTH, expand=True)
-        self.tv_show_text.insert(tk.END, "No TV show data loaded yet.")
-        self.tv_show_stats_text.insert(tk.END, "No TV show statistics available yet.")
+        self.tv_show_stats_text.pack(fill=tk.BOTH, expand=True)  # Text area for TV show statistics
+        self.tv_show_text.insert(tk.END, "No TV show data loaded yet.")  # Placeholder text
+        self.tv_show_stats_text.insert(tk.END, "No TV show statistics available yet.")  # Placeholder text
 
     def create_book_tab(self):
-        self.book_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.book_tab, text="Books")
-        self.book_text = scrolledtext.ScrolledText(self.book_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.book_text.pack(fill=tk.BOTH, expand=True)
-        self.book_stats_text = scrolledtext.ScrolledText(self.book_tab, wrap=tk.WORD, height=10, state='disabled')
-        self.book_stats_text.pack(fill=tk.BOTH, expand=True)
-        self.book_text.insert(tk.END, "No book data loaded yet.")
-        self.book_stats_text.insert(tk.END, "No book statistics available yet.")
-
+        """
+        Creates a tab for displaying book data and statistics within the application.
+        This tab contains text areas for displaying book data and statistical information.
+        """
+        self.book_tab = ttk.Frame(self.notebook)  # Creating a frame for the book tab
+        self.notebook.add(self.book_tab, text="Books")  # Adding this frame to the notebook with a label
+        self.book_text = scrolledtext.ScrolledText(self.book_tab, wrap=tk.WORD, height=10, state='disabled')  # Text area for book data
+        self.book_text.pack(fill=tk.BOTH, expand=True)  # Packing to make it fill the space and expandable
+        self.book_stats_text = scrolledtext.ScrolledText(self.book_tab, wrap=tk.WORD, height=10, state='disabled')  # Text area for book stats
+        self.book_stats_text.pack(fill=tk.BOTH, expand=True)  # Packing to make it fill the space and expandable
+        self.book_text.insert(tk.END, "No book data loaded yet.")  # Placeholder text
+        self.book_stats_text.insert(tk.END, "No book statistics available yet.")  # Placeholder text
 
     def create_search_tab(self):
-        self.search_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.search_tab, text="Search Movies/TV")
+        """
+        Creates a tab for searching through movies and TV shows.
+        This tab includes multiple entries for different search criteria like type, title, director, etc.
+        """
+        self.search_tab = ttk.Frame(self.notebook)  # Creating a frame for the search tab
+        self.notebook.add(self.search_tab, text="Search Movies/TV")  # Adding this frame to the notebook with a label
 
-        # Creating frames for each row
-        type_frame = ttk.Frame(self.search_tab)
-        title_frame = ttk.Frame(self.search_tab)
-        director_frame = ttk.Frame(self.search_tab)
-        actor_frame = ttk.Frame(self.search_tab)
-        genre_frame = ttk.Frame(self.search_tab)
-        search_button_frame = ttk.Frame(self.search_tab)
+        # Defining frames for different search criteria and organize them vertically
+        type_frame = ttk.Frame(self.search_tab)  # Frame for type selection
+        title_frame = ttk.Frame(self.search_tab)  # Frame for title input
+        director_frame = ttk.Frame(self.search_tab)  # Frame for director input
+        actor_frame = ttk.Frame(self.search_tab)  # Frame for actor input
+        genre_frame = ttk.Frame(self.search_tab)  # Frame for genre input
+        search_button_frame = ttk.Frame(self.search_tab)  # Frame for search button
 
-        # Packing frames without extra vertical space
+        # Packing all frames to fill horizontally
         type_frame.pack(fill='x')
         title_frame.pack(fill='x')
         director_frame.pack(fill='x')
@@ -131,39 +159,35 @@ class RecommenderGUI:
         genre_frame.pack(fill='x')
         search_button_frame.pack(fill='x')
 
-        # Type Entry
-        ttk.Label(type_frame, text="Type:").pack(side='left', fill='x',pady=3)
+        # Creating and place UI elements within their respective frames
+        ttk.Label(type_frame, text="Type:").pack(side='left', fill='x', pady=3)
         self.type_combobox = ttk.Combobox(type_frame, values=["Movie", "TV Show"], width=27)
         self.type_combobox.pack(side='left', padx=5)
 
-        # Title Entry
-        ttk.Label(title_frame, text="Title:").pack(side='left', fill='x',pady=3)
+        ttk.Label(title_frame, text="Title:").pack(side='left', fill='x', pady=3)
         self.title_entry = ttk.Entry(title_frame, width=50)
         self.title_entry.pack(side='left', padx=5)
 
-        # Director Entry
-        ttk.Label(director_frame, text="Director:").pack(side='left', fill='x',pady=3)
+        ttk.Label(director_frame, text="Director:").pack(side='left', fill='x', pady=3)
         self.director_entry = ttk.Entry(director_frame, width=50)
         self.director_entry.pack(side='left', padx=5)
 
-        # Actor Entry
-        ttk.Label(actor_frame, text="Actor:").pack(side='left', fill='x',pady=3)
+        ttk.Label(actor_frame, text="Actor:").pack(side='left', fill='x', pady=3)
         self.actor_entry = ttk.Entry(actor_frame, width=50)
         self.actor_entry.pack(side='left', padx=5)
 
-        # Genre Entry
-        ttk.Label(genre_frame, text="Genre:").pack(side='left', fill='x',pady=3)
+        ttk.Label(genre_frame, text="Genre:").pack(side='left', fill='x', pady=3)
         self.genre_entry = ttk.Entry(genre_frame, width=50)
         self.genre_entry.pack(side='left', padx=5)
 
-        # Search Button
-        ttk.Button(search_button_frame, text="Search", command=self.searchShows).pack(side='left', ipadx=4,ipady=4,fill='x')
+        ttk.Button(search_button_frame, text="Search", command=self.searchShows).pack(side='left', ipadx=4, ipady=4, fill='x')
 
-        # Text area for results
+        # Text area for displaying search results
         self.search_text = scrolledtext.ScrolledText(self.search_tab, wrap=tk.WORD, height=10)
         self.search_text.pack(fill='both', expand=True)
 
     def create_search_books_tab(self):
+        """Creates a tab for searching books."""
         self.search_books_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.search_books_tab, text="Search Books")
 
@@ -202,7 +226,7 @@ class RecommenderGUI:
         self.book_search_text.pack(fill='both', expand=True, padx=10, pady=10)
 
     def create_recommendation_tab(self):
-        """Creates the tab for getting recommendations."""
+        """Create a tab for getting recommendations."""
         self.recommendation_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.recommendation_tab, text="Recommendations")
 
@@ -235,10 +259,12 @@ class RecommenderGUI:
         self.recommendation_text.pack(fill='both', expand=True, padx=10)
 
     def create_bottom_buttons(self):
+        """Create bottom buttons for loading data and other functionalities."""
         # Setting uniform padding and side alignment
         button_padding = {'padx': 105, 'pady': 5, 'ipadx': 3, 'ipady': 3}
 
-        ttk.Button(self.root, text="Load Shows", command=self.loadShows ).pack(side=tk.LEFT, **button_padding)
+        # Creating buttons for different functionalities and packing them to the left side of the window
+        ttk.Button(self.root, text="Load Shows", command=self.loadShows).pack(side=tk.LEFT, **button_padding)
         ttk.Button(self.root, text="Load Books", command=self.loadBooks).pack(side=tk.LEFT, **button_padding)
         ttk.Button(self.root, text="Load Associations", command=self.loadAssociations).pack(side=tk.LEFT,
                                                                                             **button_padding)
@@ -246,6 +272,11 @@ class RecommenderGUI:
         ttk.Button(self.root, text="Quit", command=self.root.quit).pack(side=tk.LEFT, **button_padding)
 
     def loadShows(self):
+        """
+        Load data for TV shows and movies from an external source and update the GUI to display the loaded data.
+        This method updates various text areas dedicated to movies and TV shows with their respective data and statistics.
+        """
+        # Attempt to load shows from an external source
         self.recommender.loadShows()
         try:
             movie_text = '\n'.join(self.recommender.getMovieList())
@@ -270,9 +301,15 @@ class RecommenderGUI:
         self.tv_show_stats_text.delete(1.0, tk.END)
         self.tv_show_stats_text.insert(tk.END, tv_show_stats)
         self.tv_show_stats_text.config(state='disabled')
+
+        # Updating the ratings charts if new data has been loaded
         self.update_ratings_charts()
 
     def loadBooks(self):
+        """
+        Loads book data from an external source and update the GUI to display the loaded book data and statistics.
+        """
+        # Load books using the recommender's method
         self.recommender.loadBooks()
         try:
             book_text = '\n'.join(self.recommender.getBookList())
@@ -289,12 +326,23 @@ class RecommenderGUI:
         self.book_stats_text.config(state='disabled')
 
     def loadAssociations(self):
+        """
+        Loads associations data from an external file. This data typically includes links
+        between different media types, such as shows and books.
+        """
         self.recommender.loadAssociations()
 
     def creditInfoBox(self):
-        messagebox.showinfo("Credits", "Developed by Team XYZ")
+        """
+        Display's credits information for the application.
+        """
+        messagebox.showinfo("Credits", " 1. Karthik Samudrala\n 2. Baby Sahithi Samudrala\n 3. Jaswanth Kolisetty\n\n Developed on Date: May 5th, 2024")
 
     def searchShows(self):
+        """
+        Search for shows based on user input criteria including type, title, director,
+        actor, and genre, then display the search results in the GUI.
+        """
         media_type = self.type_combobox.get()
         title = self.title_entry.get()
         director = self.director_entry.get()
@@ -307,6 +355,10 @@ class RecommenderGUI:
         self.search_text.config(state='disabled')
 
     def searchBooks(self):
+        """
+        Searching for books based on user input criteria including title, author, and publisher,
+        then display the search results in the GUI.
+        """
         title = self.title_book_entry.get()
         author = self.author_entry.get()
         publisher = self.publisher_entry.get()
@@ -317,7 +369,10 @@ class RecommenderGUI:
         self.book_search_text.config(state='disabled')
 
     def getRecommendations(self):
-        """Fetches recommendations based on user inputs and displays them."""
+        """
+        Fetching and display recommendations based on the type and title specified by the user.
+        This function handles both movies/TV shows and books.
+        """
         media_type = self.rec_type_combobox.get()
         title = self.rec_title_entry.get()
         if not media_type or not title:
@@ -329,8 +384,11 @@ class RecommenderGUI:
         self.recommendation_text.insert(tk.END, results)
         self.recommendation_text.config(state='disabled')
 
+
 def main():
+    """Main function to initialize the GUI."""
     gui = RecommenderGUI()
     gui.root.mainloop()
+
 
 main()
